@@ -43,17 +43,24 @@ public class StartActivity extends AppCompatActivity {
         mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000,
                 10, mLocationListener);
-        Location location = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        receivePostCode = getPostalCode(location);
-        text1.setText(receivePostCode);
 
+        Location location = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        getZipCode(location);
+        text1.setText(receivePostCode);
     }
+
+
 
     private final LocationListener mLocationListener = new LocationListener() {
         @Override
         public void onLocationChanged(final Location location) {
-            receivePostCode = getPostalCode(location);
-            text1.setText(receivePostCode);
+            double latitude = location.getLatitude();
+            double longitude = location.getLongitude();
+            getZipCode(location);
+            String msg = "New Latitude: " + latitude +"  New Longitude: " + longitude + "zipcode : "+ receivePostCode;
+
+
+            text1.setText(msg);
         }
 
         @Override
@@ -111,10 +118,12 @@ public class StartActivity extends AppCompatActivity {
 
     }
 
-    public String getPostalCode(Location location){
 
+    public void getZipCode(Location location){
         double longitude = location.getLongitude();
         double latitude = location.getLatitude();
+        Log.d("LOCATION", String.valueOf(longitude) + "   "+String.valueOf(latitude));
+
         Geocoder geoCoder = new Geocoder(getApplicationContext(), Locale.getDefault());
         List<Address> address = null;
 
@@ -126,14 +135,14 @@ public class StartActivity extends AppCompatActivity {
                 e1.printStackTrace();
             }
             if (address.size() > 0) {
-                return address.get(0).getPostalCode();
+                receivePostCode = address.get(0).getPostalCode();
 
+            }else{
+                receivePostCode = "The Location hasn't any postal code";
             }
 
         }
-        return "";
     }
-
 
 }
 

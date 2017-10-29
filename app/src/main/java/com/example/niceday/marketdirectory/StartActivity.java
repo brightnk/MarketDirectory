@@ -1,8 +1,8 @@
 package com.example.niceday.marketdirectory;
 
 import android.Manifest;
+import android.app.Dialog;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
@@ -11,6 +11,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -18,36 +19,56 @@ import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.Marker;
+
 import java.io.IOException;
 import java.util.List;
-import java.util.Locale;
 
-import static android.R.id.text1;
-
-public class StartActivity extends AppCompatActivity implements MarketListFragment.OnFragmentInteractionListener{
-
+public class StartActivity extends AppCompatActivity implements MarketListFragment.OnFragmentInteractionListener, GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener,
+        LocationListener{
+    private static final int ERROR_DIALOG_REQUEST = 9001;
     private static final int REQUEST_PERMISSION_LOCATION = 1001;
+    GoogleMap mMap;
+    private GoogleApiClient mLocationClient;
+    private Marker marker;
+    private Geocoder geocoder;
+    private LocationManager mLocationManager;
+    private String currentPostCode =null;
+
+    //for testing purpose only
     TextView text1;
-    LocationManager mLocationManager;
-    String receivePostCode="";
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start);
-
-        if(!checkPermission()){
-            return;
-        }
-
+        geocoder = new Geocoder(this);
         text1 = (TextView) findViewById(R.id.txt1);
 
-        mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000,
-                10, mLocationListener);
+        if(!checkPermission()){
+            text1.setText("Please grant permission first");
 
-        Location location = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        getZipCode(location);
-        text1.setText(receivePostCode);
+        }else {
+
+            //set location listener
+            mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000,
+                    10, mLocationListener);
+            //get last updated location
+            Location location = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            if(location == null) location=mLocationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+            //get current location's zipcode
+            else currentPostCode = getZipCode(location);
+            text1.setText(currentPostCode);
+        }
+
+
     }
 
 
@@ -57,23 +78,20 @@ public class StartActivity extends AppCompatActivity implements MarketListFragme
         public void onLocationChanged(final Location location) {
             double latitude = location.getLatitude();
             double longitude = location.getLongitude();
-            getZipCode(location);
-            String msg = "New Latitude: " + latitude +"  New Longitude: " + longitude + "zipcode : "+ receivePostCode;
+            currentPostCode = getZipCode(location);
+            String msg = "New Latitude: " + latitude +"  New Longitude: " + longitude + "zipcode : "+ currentPostCode;
 
 
             text1.setText(msg);
         }
-
         @Override
         public void onStatusChanged(String s, int i, Bundle bundle) {
 
         }
-
         @Override
         public void onProviderEnabled(String s) {
 
         }
-
         @Override
         public void onProviderDisabled(String s) {
 
@@ -120,34 +138,95 @@ public class StartActivity extends AppCompatActivity implements MarketListFragme
     }
 
 
-    public void getZipCode(Location location){
+    public String getZipCode(Location location){
         double longitude = location.getLongitude();
         double latitude = location.getLatitude();
         Log.d("LOCATION", String.valueOf(longitude) + "   "+String.valueOf(latitude));
-
-        Geocoder geoCoder = new Geocoder(getApplicationContext(), Locale.getDefault());
         List<Address> address = null;
 
-        if (geoCoder != null) {
+        if (geocoder != null) {
             try {
-                address = geoCoder.getFromLocation(latitude, longitude, 1);
+                address = geocoder.getFromLocation(latitude, longitude, 1);
             } catch (IOException e1) {
                 // TODO Auto-generated catch block
                 e1.printStackTrace();
             }
             if (address.size() > 0) {
-                receivePostCode = address.get(0).getPostalCode();
+               return address.get(0).getPostalCode();
 
-            }else{
-                receivePostCode = "The Location hasn't any postal code";
             }
-
         }
+        return null;
     }
+
+
+    public boolean servicesOK() {
+        /*
+        Reference: https://developers.google.com/android/reference/com/google/android/gms/common/GoogleApiAvailability
+        */
+        GoogleApiAvailability gApiAvail = GoogleApiAvailability.getInstance();
+
+        int isAvailable = gApiAvail.isGooglePlayServicesAvailable(this);
+
+        if (isAvailable == ConnectionResult.SUCCESS) {
+            return true;
+        } else if (gApiAvail.isUserResolvableError(isAvailable)) {
+            //Activity, error code, request code
+            Dialog dialog =
+                    gApiAvail.getErrorDialog(this, isAvailable, ERROR_DIALOG_REQUEST);
+            dialog.show();
+        } else {
+            Toast.makeText(this, "Can't connect to mapping service", Toast.LENGTH_SHORT).show();
+        }
+
+        return false;
+    }
+
+
+
+
+
+
+
 
     @Override
     public void onFragmentInteraction(Uri uri) {
-        
+
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+
+    }
+
+    @Override
+    public void onStatusChanged(String s, int i, Bundle bundle) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String s) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(String s) {
+
+    }
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
     }
 }
 

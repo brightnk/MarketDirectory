@@ -9,6 +9,7 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -23,7 +24,7 @@ import java.util.Locale;
 
 import static android.R.id.text1;
 
-public class StartActivity extends AppCompatActivity {
+public class StartActivity extends AppCompatActivity implements MarketListFragment.OnFragmentInteractionListener{
 
     private static final int REQUEST_PERMISSION_LOCATION = 1001;
     TextView text1;
@@ -144,6 +145,10 @@ public class StartActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onFragmentInteraction(Uri uri) {
+        
+    }
 }
 
 

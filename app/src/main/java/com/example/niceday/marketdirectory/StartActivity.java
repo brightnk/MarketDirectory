@@ -22,8 +22,15 @@ import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.IOException;
 import java.util.List;
@@ -39,6 +46,9 @@ public class StartActivity extends AppCompatActivity implements MarketListFragme
     private Geocoder geocoder;
     private LocationManager mLocationManager;
     private String currentPostCode =null;
+    private Location currentLocation;
+    SupportMapFragment mapFragment;
+    MarketListFragment listFragment;
 
     //for testing purpose only
     TextView text1;
@@ -49,6 +59,8 @@ public class StartActivity extends AppCompatActivity implements MarketListFragme
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start);
         geocoder = new Geocoder(this);
+        mapFragment =(SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.marketMap);
+        listFragment = (MarketListFragment) getSupportFragmentManager().findFragmentById(R.id.marketList);
         text1 = (TextView) findViewById(R.id.txt1);
 
         if(!checkPermission()){
@@ -64,8 +76,13 @@ public class StartActivity extends AppCompatActivity implements MarketListFragme
             Location location = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             if(location == null) location=mLocationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
             //get current location's zipcode
-            else currentPostCode = getZipCode(location);
+
+            currentLocation = location;
+            currentPostCode = getZipCode(location);
+            initMap();
+
             text1.setText(currentPostCode);
+            getSupportFragmentManager().beginTransaction().hide(listFragment).commit();
         }
 
 
@@ -73,30 +90,7 @@ public class StartActivity extends AppCompatActivity implements MarketListFragme
 
 
 
-    private final LocationListener mLocationListener = new LocationListener() {
-        @Override
-        public void onLocationChanged(final Location location) {
-            double latitude = location.getLatitude();
-            double longitude = location.getLongitude();
-            currentPostCode = getZipCode(location);
-            String msg = "New Latitude: " + latitude +"  New Longitude: " + longitude + "zipcode : "+ currentPostCode;
 
-
-            text1.setText(msg);
-        }
-        @Override
-        public void onStatusChanged(String s, int i, Bundle bundle) {
-
-        }
-        @Override
-        public void onProviderEnabled(String s) {
-
-        }
-        @Override
-        public void onProviderDisabled(String s) {
-
-        }
-    };
 
 
     //check if have user's permission of reading location
@@ -183,9 +177,95 @@ public class StartActivity extends AppCompatActivity implements MarketListFragme
     }
 
 
+    private void initMap() {
+        if (mMap == null) {
+            mapFragment.getMapAsync(new OnMapReadyCallback() {
+                @Override
+                public void onMapReady(GoogleMap googleMap) {
+
+                    Toast.makeText(StartActivity.this, "Ready to map!", Toast.LENGTH_SHORT).show();
+                    // initial setup
+                    mMap = googleMap;
+                    // reference: https://developers.google.com/android/reference/com/google/android/gms/maps/GoogleMap
+                    googleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+                    googleMap.setTrafficEnabled(true);
+                    //googleMap.setIndoorEnabled(true);
+                    googleMap.setBuildingsEnabled(true);
+
+                    // reference: https://developers.google.com/android/reference/com/google/android/gms/maps/UiSettings.html#setZoomControlsEnabled(boolean)
+                    // buttons on the lower right
+                    googleMap.getUiSettings().setZoomControlsEnabled(true);
+                    gotoLocation(currentLocation.getLatitude(), currentLocation.getLongitude(), 15,null,true);
+
+                    mLocationClient = new GoogleApiClient.Builder(StartActivity.this)
+                            .addApi(LocationServices.API)
+                            .addConnectionCallbacks(StartActivity.this)
+                            .addOnConnectionFailedListener(StartActivity.this)
+                            .build();
+
+                    mLocationClient.connect();
+
+                    mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+                        @Override
+                        public void onMapLongClick(LatLng latLng) {
+                            Toast.makeText(StartActivity.this,"Tap",Toast.LENGTH_SHORT).show();
+                            gotoLocation(latLng.latitude,latLng.longitude,15,null,false);
+
+                        }
+                    });
+
+                    mMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
+                        @Override
+                        public void onMarkerDragStart(Marker marker) {}
+
+                        @Override
+                        public void onMarkerDrag(Marker marker) {}
+
+                        @Override
+                        public void onMarkerDragEnd(Marker marker) {
+                            LatLng latLng = marker.getPosition();
+                            gotoLocation(latLng.latitude,latLng.longitude,15,null,false);
+                        }
+                    });
+
+                }
+            });
+        }
+
+    }
+
+    private void gotoLocation(double lat, double lng, float zoom, List<Address> list, boolean moveCamera) {
+        LatLng latLng = new LatLng(lat, lng);
 
 
+        if (marker != null) {
+            marker.remove();
+        }
 
+        // getting extra info (option)
+        try {
+            if (list == null)
+                list = geocoder.getFromLocation(lat, lng, 1) ;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // There are other information you could retrieve from Address
+        String street = list.get(0).getAddressLine(0);
+        String locality = list.get(0).getLocality();
+        String country = list.get(0).getCountryName();
+
+        MarkerOptions options = new MarkerOptions()
+                .title(locality)
+                .snippet(street + "\n" + country)
+                .draggable(true)
+                .position(new LatLng(lat, lng));
+        marker = mMap.addMarker(options);
+        if (moveCamera) {
+            CameraUpdate update = CameraUpdateFactory.newLatLngZoom(latLng, zoom);
+            mMap.moveCamera(update);
+        }
+    }
 
 
 
@@ -228,6 +308,37 @@ public class StartActivity extends AppCompatActivity implements MarketListFragme
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
     }
+
+    //location change listener handler
+    private final LocationListener mLocationListener = new LocationListener() {
+        @Override
+        public void onLocationChanged(final Location location) {
+            currentLocation = location;
+            double latitude = location.getLatitude();
+            double longitude = location.getLongitude();
+            currentPostCode = getZipCode(location);
+            String msg = "New Latitude: " + latitude +"  New Longitude: " + longitude + "zipcode : "+ currentPostCode;
+
+
+            text1.setText(msg);
+        }
+        @Override
+        public void onStatusChanged(String s, int i, Bundle bundle) {
+
+        }
+        @Override
+        public void onProviderEnabled(String s) {
+
+        }
+        @Override
+        public void onProviderDisabled(String s) {
+
+        }
+    };
+
+
+
+
 }
 
 

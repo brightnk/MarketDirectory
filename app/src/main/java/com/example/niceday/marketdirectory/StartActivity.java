@@ -3,6 +3,7 @@ package com.example.niceday.marketdirectory;
 import android.Manifest;
 import android.app.Dialog;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
@@ -28,6 +29,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -70,20 +72,39 @@ public class StartActivity extends AppCompatActivity implements MarketListFragme
 
             //set location listener
             mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000,
+            mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0,
+                    0, this);
+            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000,
                     10, mLocationListener);
             //get last updated location
-            Location location = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            if(location == null) location=mLocationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+            Location location = mLocationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+
+            if(location == null) {
+                location=mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            }
             //get current location's zipcode
+
+            if(location==null){
+                Log.d("Location", "can not get location");
+            }
 
             currentLocation = location;
             currentPostCode = getZipCode(location);
             initMap();
 
             text1.setText(currentPostCode);
-            getSupportFragmentManager().beginTransaction().hide(listFragment).commit();
+
+            //check device type
+            boolean istablet = getResources().getBoolean(R.bool.isTablet);
+            if(istablet){
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+            }
+            else {
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+                getSupportFragmentManager().beginTransaction().hide(listFragment).commit();
+            }
         }
+
 
 
     }
@@ -188,7 +209,7 @@ public class StartActivity extends AppCompatActivity implements MarketListFragme
                     mMap = googleMap;
                     // reference: https://developers.google.com/android/reference/com/google/android/gms/maps/GoogleMap
                     googleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-                    googleMap.setTrafficEnabled(true);
+                    //googleMap.setTrafficEnabled(true);
                     //googleMap.setIndoorEnabled(true);
                     googleMap.setBuildingsEnabled(true);
 
@@ -260,7 +281,9 @@ public class StartActivity extends AppCompatActivity implements MarketListFragme
                 .snippet(street + "\n" + country)
                 .draggable(true)
                 .position(new LatLng(lat, lng));
+
         marker = mMap.addMarker(options);
+        mMap.addMarker(new MarkerOptions().title("test").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)).position(new LatLng(37.422000, -122.081045)));
         if (moveCamera) {
             CameraUpdate update = CameraUpdateFactory.newLatLngZoom(latLng, zoom);
             mMap.moveCamera(update);

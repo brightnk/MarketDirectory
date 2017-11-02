@@ -2,7 +2,10 @@ package com.example.niceday.marketdirectory;
 
 import android.Manifest;
 import android.app.Dialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.location.Address;
@@ -34,7 +37,11 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class StartActivity extends AppCompatActivity implements MarketListFragment.OnFragmentInteractionListener, GoogleApiClient.ConnectionCallbacks,
@@ -49,12 +56,14 @@ public class StartActivity extends AppCompatActivity implements MarketListFragme
     private LocationManager mLocationManager;
     private String currentPostCode =null;
     private Location currentLocation;
+    private TheResponse response;
     SupportMapFragment mapFragment;
     MarketListFragment listFragment;
-
+    String marketText;
+    Location location;
     //for testing purpose only
     TextView text1;
-
+    ArrayList<Market> marketArrayList= new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,7 +73,7 @@ public class StartActivity extends AppCompatActivity implements MarketListFragme
         mapFragment =(SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.marketMap);
         listFragment = (MarketListFragment) getSupportFragmentManager().findFragmentById(R.id.marketList);
         text1 = (TextView) findViewById(R.id.txt1);
-
+        response = new TheResponse(this);
         if(!checkPermission()){
             text1.setText("Please grant permission first");
 
@@ -74,10 +83,10 @@ public class StartActivity extends AppCompatActivity implements MarketListFragme
             mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
             mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0,
                     0, this);
-            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000,
+            mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000,
                     10, mLocationListener);
             //get last updated location
-            Location location = mLocationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+            location = mLocationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
 
             if(location == null) {
                 location=mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
@@ -86,13 +95,24 @@ public class StartActivity extends AppCompatActivity implements MarketListFragme
 
             if(location==null){
                 Log.d("Location", "can not get location");
-            }
+            }else{
 
-            currentLocation = location;
-            currentPostCode = getZipCode(location);
-            initMap();
+                currentLocation = location;
+                currentPostCode = getZipCode(location);
 
-            text1.setText(currentPostCode);
+                //start download serivce by zipcode
+                Intent downloadService = new Intent(StartActivity.this, DownloadService.class);
+                downloadService.putExtra("SERVICETYPE", "byZipCode");
+                downloadService.putExtra("Zipcode", currentPostCode);
+                startService(downloadService);
+
+                initMap();
+
+
+
+                text1.setText(currentPostCode);
+
+                }
 
             //check device type
             boolean istablet = getResources().getBoolean(R.bool.isTablet);
@@ -103,11 +123,73 @@ public class StartActivity extends AppCompatActivity implements MarketListFragme
                 setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
                 getSupportFragmentManager().beginTransaction().hide(listFragment).commit();
             }
+
+
+
+        }
+    }
+
+
+    protected void onPause(){
+        super.onPause();
+        unregisterReceiver(response);
+    }
+
+
+    protected void onResume(){
+        super.onResume();
+        IntentFilter filter = new IntentFilter(TheResponse.STATUS_DONE_1);
+        registerReceiver(response,filter);
+    }
+
+
+
+    //Response class to receive broadcast
+    class TheResponse extends BroadcastReceiver {
+
+        Context c;
+        public TheResponse(Context c) {
+            this.c = c;
+        }
+        public static final String STATUS_DONE_1 = "com.example.intentservebroaddemo_v1.ALL_DONE";
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(STATUS_DONE_1)) {
+                marketText= intent.getStringExtra("output");
+                marketArrayList= new ArrayList<>();
+                try{
+                    JSONObject markets = new JSONObject(marketText);
+                    JSONArray marketAr = markets.getJSONArray("results");
+                    JSONObject element;
+                    String tempName;
+                    Market mt;
+                    for(int i=0; i<marketAr.length();i++){
+                        element=marketAr.getJSONObject(i);
+                        mt = new Market();
+                        mt.id = element.getInt("id");
+                        tempName = element.getString("marketname").trim();
+                        String [] tempNames = tempName.split(" ");
+                        mt.distance = Double.parseDouble(tempNames[0]);
+                        mt.marketName = tempName.substring(tempNames[0].length());
+                        marketArrayList.add(mt);
+                    }
+                    Log.d("testActiviy", marketArrayList.get(0).marketName);
+
+                }catch (Exception e){
+                    Log.d("MainActivity", e.getMessage());
+                }
+
+                listFragment.setTheData(marketArrayList);
+               // menuFragment.setArguments(bundle);
+                //getSupportFragmentManager().beginTransaction().add(R.id.content, menuFragment).commit();
+
+            }
         }
 
-
-
     }
+
+
+
 
 
 
@@ -156,7 +238,6 @@ public class StartActivity extends AppCompatActivity implements MarketListFragme
     public String getZipCode(Location location){
         double longitude = location.getLongitude();
         double latitude = location.getLatitude();
-        Log.d("LOCATION", String.valueOf(longitude) + "   "+String.valueOf(latitude));
         List<Address> address = null;
 
         if (geocoder != null) {

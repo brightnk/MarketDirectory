@@ -4,9 +4,12 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import java.util.ArrayList;
 
 
 /**
@@ -67,6 +70,14 @@ public class MarketListFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_market_list, container, false);
     }
 
+    public void setTheData(ArrayList<Market> marketList){
+        Log.d("TestListFragment", marketList.get(0).marketName);
+    }
+
+
+
+
+
     // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {
@@ -90,6 +101,9 @@ public class MarketListFragment extends Fragment {
         super.onDetach();
         mListener = null;
     }
+
+
+
 
     /**
      * This interface must be implemented by activities that contain this

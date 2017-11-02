@@ -26,16 +26,30 @@ public class DownloadService extends IntentService{
 
     }
 
+
+
+
+
     protected void onHandleIntent(Intent intent){
 
+        String searchLink = "";
+        String finishFlag = "";
+        switch(intent.getStringExtra("SERVICETYPE")){
 
-        String results = getRemoteData("https://jsonplaceholder.typicode.com/users");
+            case "byZipCode": searchLink = "https://search.ams.usda.gov/farmersmarkets/v1/data.svc/zipSearch?zip=" + intent.getStringExtra("Zipcode");
+                              finishFlag = StartActivity.TheResponse.STATUS_DONE_1;
+                break;
+
+
+        }
+
+        String results = getRemoteData(searchLink);
 
         Intent broadcast = new Intent();
-        //broadcast.setAction(StartActivity.TheResponse.STATUS_DONE);
-        broadcast.putExtra("output", "{ 'personList':"+results+"}");
+        broadcast.setAction(finishFlag);
+        broadcast.putExtra("output", results);
         sendBroadcast(broadcast);
-
+        stopSelf();
 
     }
 

@@ -71,7 +71,7 @@ public class MarketListFragment extends Fragment {
     }
 
     public void setTheData(ArrayList<Market> marketList){
-        Log.d("TestListFragment", marketList.get(0).marketName);
+        Log.d("TestListFragment", marketList.get(0).marketDetail.googleLink);
     }
 
 

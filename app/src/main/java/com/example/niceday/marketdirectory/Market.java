@@ -9,7 +9,7 @@ public class Market {
     int id;
     String marketName;
     double distance;
-    MarketDetail marketDetail;
+    MarketDetail marketDetail = new MarketDetail();
 
     public Market(){
 

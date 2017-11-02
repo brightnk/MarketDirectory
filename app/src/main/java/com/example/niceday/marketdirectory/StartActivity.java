@@ -59,7 +59,7 @@ public class StartActivity extends AppCompatActivity implements MarketListFragme
     private TheResponse response;
     SupportMapFragment mapFragment;
     MarketListFragment listFragment;
-    String marketText;
+
     Location location;
     //for testing purpose only
     TextView text1;
@@ -138,8 +138,10 @@ public class StartActivity extends AppCompatActivity implements MarketListFragme
 
     protected void onResume(){
         super.onResume();
-        IntentFilter filter = new IntentFilter(TheResponse.STATUS_DONE_1);
-        registerReceiver(response,filter);
+        IntentFilter filter1 = new IntentFilter(TheResponse.STATUS_DONE_1);
+        IntentFilter filter2 = new IntentFilter(TheResponse.STATUS_DONE_2);
+        registerReceiver(response,filter1);
+        registerReceiver(response,filter2);
     }
 
 
@@ -152,15 +154,18 @@ public class StartActivity extends AppCompatActivity implements MarketListFragme
             this.c = c;
         }
         public static final String STATUS_DONE_1 = "com.example.intentservebroaddemo_v1.ALL_DONE";
+        public static final String STATUS_DONE_2 = "com.example.intentservebroaddemo_v1.ALL_Detail_DONE";
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(STATUS_DONE_1)) {
-                marketText= intent.getStringExtra("output");
+                String marketText= intent.getStringExtra("output");
                 marketArrayList= new ArrayList<>();
+                ArrayList<String> ids = new ArrayList<>();
                 try{
                     JSONObject markets = new JSONObject(marketText);
                     JSONArray marketAr = markets.getJSONArray("results");
                     JSONObject element;
+
                     String tempName;
                     Market mt;
                     for(int i=0; i<marketAr.length();i++){
@@ -170,8 +175,9 @@ public class StartActivity extends AppCompatActivity implements MarketListFragme
                         tempName = element.getString("marketname").trim();
                         String [] tempNames = tempName.split(" ");
                         mt.distance = Double.parseDouble(tempNames[0]);
-                        mt.marketName = tempName.substring(tempNames[0].length());
+                        mt.marketName = tempName.substring(tempNames[0].length()+1);
                         marketArrayList.add(mt);
+                        ids.add(element.getString("id"));
                     }
                     Log.d("testActiviy", marketArrayList.get(0).marketName);
 
@@ -179,9 +185,34 @@ public class StartActivity extends AppCompatActivity implements MarketListFragme
                     Log.d("MainActivity", e.getMessage());
                 }
 
+                Intent detailDownloadService = new Intent(StartActivity.this, DownloadService.class);
+                detailDownloadService.putStringArrayListExtra("IDS", ids);
+                detailDownloadService.putExtra("SERVICETYPE", "byMarketIDs");
+                startService(detailDownloadService);
+
+            }
+            else if(intent.getAction().equals(STATUS_DONE_2)){
+                String marketDetail = intent.getStringExtra("output");
+
+                try{
+                    JSONArray marketDetailsArray  = new JSONArray(marketDetail);
+                    JSONObject marketDetailobj;
+                    Market tempMkt;
+                    Log.d("DETAILSERVICERECEIVED", marketDetailsArray.getJSONObject(0).getString("marketdetails"));
+                    for(int i=0; i<marketDetailsArray.length();i++){
+                        tempMkt = marketArrayList.get(i);
+                        marketDetailobj =  marketDetailsArray.getJSONObject(i).getJSONObject("marketdetails");
+                        tempMkt.marketDetail.address = marketDetailobj.getString("Address");
+                        tempMkt.marketDetail.googleLink = marketDetailobj.getString("GoogleLink");
+                        tempMkt.marketDetail.products = marketDetailobj.getString("Products");
+                        tempMkt.marketDetail.schedule = marketDetailobj.getString("Schedule");
+                    }
+
+                }catch (Exception e){
+                    Log.d("MainActivity", e.getMessage());
+                }
+
                 listFragment.setTheData(marketArrayList);
-               // menuFragment.setArguments(bundle);
-                //getSupportFragmentManager().beginTransaction().add(R.id.content, menuFragment).commit();
 
             }
         }

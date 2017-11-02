@@ -34,16 +34,27 @@ public class DownloadService extends IntentService{
 
         String searchLink = "";
         String finishFlag = "";
+        String results="";
         switch(intent.getStringExtra("SERVICETYPE")){
 
             case "byZipCode": searchLink = "https://search.ams.usda.gov/farmersmarkets/v1/data.svc/zipSearch?zip=" + intent.getStringExtra("Zipcode");
                               finishFlag = StartActivity.TheResponse.STATUS_DONE_1;
+                              results = getRemoteData(searchLink);
                 break;
 
+            case "byMarketIDs": results="[";
+                                for(String id: intent.getStringArrayListExtra("IDS"))
+                            {
+                                searchLink = "https://search.ams.usda.gov/farmersmarkets/v1/data.svc/mktDetail?id="+id;
+                                results += getRemoteData(searchLink) +",";
+                            }
+                            results = results.substring(0, results.length()-1)+"]";
+                            finishFlag =StartActivity.TheResponse.STATUS_DONE_2;
+                break;
 
         }
 
-        String results = getRemoteData(searchLink);
+
 
         Intent broadcast = new Intent();
         broadcast.setAction(finishFlag);

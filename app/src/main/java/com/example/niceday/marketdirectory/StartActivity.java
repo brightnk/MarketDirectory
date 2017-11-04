@@ -212,6 +212,7 @@ public class StartActivity extends AppCompatActivity implements MarketFragment.O
                 }
 
                 listFragment.setDataView(marketArrayList);
+                createMapMarker(marketArrayList);
 
             }
         }
@@ -337,7 +338,7 @@ public class StartActivity extends AppCompatActivity implements MarketFragment.O
                     // reference: https://developers.google.com/android/reference/com/google/android/gms/maps/UiSettings.html#setZoomControlsEnabled(boolean)
                     // buttons on the lower right
                     googleMap.getUiSettings().setZoomControlsEnabled(true);
-                    gotoLocation(currentLocation.getLatitude(), currentLocation.getLongitude(), 15,null,true);
+                    gotoLocation(currentLocation.getLatitude(), currentLocation.getLongitude(), 10,null,true);
 
                     mLocationClient = new GoogleApiClient.Builder(StartActivity.this)
                             .addApi(LocationServices.API)
@@ -352,7 +353,7 @@ public class StartActivity extends AppCompatActivity implements MarketFragment.O
                         public void onMapLongClick(LatLng latLng) {
                             Toast.makeText(StartActivity.this,"Tap",Toast.LENGTH_SHORT).show();
                             searchByZipCode(getZipCode(latLng.longitude,latLng.latitude));
-                            gotoLocation(latLng.latitude,latLng.longitude,15,null,false);
+                            gotoLocation(latLng.latitude,latLng.longitude,10,null,false);
 
                         }
                     });
@@ -367,7 +368,8 @@ public class StartActivity extends AppCompatActivity implements MarketFragment.O
                         @Override
                         public void onMarkerDragEnd(Marker marker) {
                             LatLng latLng = marker.getPosition();
-                            gotoLocation(latLng.latitude,latLng.longitude,15,null,false);
+                            searchByZipCode(getZipCode(latLng.longitude,latLng.latitude));
+                            gotoLocation(latLng.latitude,latLng.longitude,10,null,false);
                         }
                     });
 
@@ -413,6 +415,32 @@ public class StartActivity extends AppCompatActivity implements MarketFragment.O
         }
     }
 
+
+    private void createMapMarker(ArrayList<Market> marketList){
+        String googleLink="";
+        double lat, lng;
+        for(Market market: marketList){
+            googleLink = market.marketDetail.googleLink;
+            String[] splitLink = googleLink.split("%2C%20");
+            String[] splitLink2 = splitLink[1].split("%20");
+
+            Log.d("LATANDLNG", googleLink);
+            Log.d("LATANDLNG", splitLink[0].substring(26)+", "+splitLink2[0]);
+            lat= Double.parseDouble(splitLink[0].substring(26));
+            lng= Double.parseDouble(splitLink2[0]);
+            Marker marker = mMap.addMarker(new MarkerOptions().title(market.marketName)
+                    .snippet(market.marketDetail.address)
+                    .draggable(false)
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN))
+                    .position(new LatLng(lat, lng))
+                );
+            markers.add(marker);
+
+        }
+
+
+
+    }
 
 
     @Override

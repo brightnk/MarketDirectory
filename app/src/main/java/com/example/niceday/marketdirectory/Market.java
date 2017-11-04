@@ -6,9 +6,9 @@ package com.example.niceday.marketdirectory;
 
 public class Market {
 
-    int id;
-    String marketName;
-    double distance;
+    int id=0;
+    String marketName = "Loading...";
+    double distance = 0;
     MarketDetail marketDetail = new MarketDetail();
 
     public Market(){
@@ -17,10 +17,10 @@ public class Market {
 
 
     class MarketDetail{
-        String address;
-        String googleLink;
-        String products;
-        String schedule;
+        String address="";
+        String googleLink="";
+        String products="Loading";
+        String schedule="";
 
     }
 

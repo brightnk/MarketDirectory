@@ -46,7 +46,9 @@ public class DownloadService extends IntentService{
                                 for(String id: intent.getStringArrayListExtra("IDS"))
                             {
                                 searchLink = "https://search.ams.usda.gov/farmersmarkets/v1/data.svc/mktDetail?id="+id;
-                                results += getRemoteData(searchLink) +",";
+                                String temp = getRemoteData(searchLink);
+                                if(temp!= null) results += getRemoteData(searchLink) +",";
+                                else results += "{marketdetails:{Address: 'n/a', GoogleLink: 'n/a', Products:'', Schedule:'n/a'}}, ";
                             }
                             results = results.substring(0, results.length()-1)+"]";
                             finishFlag =StartActivity.TheResponse.STATUS_DONE_2;

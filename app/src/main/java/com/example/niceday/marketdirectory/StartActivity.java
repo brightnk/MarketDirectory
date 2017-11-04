@@ -578,6 +578,10 @@ public class StartActivity extends AppCompatActivity implements MarketFragment.O
 
     private void startDetailActivity(Market market){
 
+        Intent detailIntent = new Intent(StartActivity.this, DetailActivity.class);
+        detailIntent.putExtra("SelectedMarket", market);
+        startActivity(detailIntent);
+
     }
 
 

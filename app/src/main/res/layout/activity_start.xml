@@ -9,19 +9,33 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="40dp"
         android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/txt1"
+        <EditText
+            android:id="@+id/searchTxt"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ems="10"
+            android:hint="search keyword"
+            android:inputType="text" />
+
+        <Spinner
+            android:id="@+id/searchSpinner"
+            android:layout_width="50dp"
+            android:layout_height="wrap_content"
+            android:spinnerMode="dialog"
+            android:layout_weight="1" />
+
+        <Button
+            android:id="@+id/searchBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Hello World!"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:onClick="userSearch"
+            android:text="Search" />
+
 
     </LinearLayout>
 
@@ -41,12 +55,10 @@
 
         <fragment
             android:id="@+id/marketMap"
-            android:layout_weight="2"
             android:name="com.google.android.gms.maps.SupportMapFragment"
             android:layout_width="0dp"
-            android:layout_height="fill_parent" />
-
-
+            android:layout_height="fill_parent"
+            android:layout_weight="2" />
 
 
     </LinearLayout>

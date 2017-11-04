@@ -20,6 +20,11 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
@@ -50,7 +55,7 @@ public class StartActivity extends AppCompatActivity implements MarketFragment.O
     private static final int REQUEST_PERMISSION_LOCATION = 1001;
     GoogleMap mMap;
     private GoogleApiClient mLocationClient;
-    private ArrayList<Marker> markers = new ArrayList<>();
+
     private Geocoder geocoder;
     private LocationManager mLocationManager;
     private String currentPostCode =null;
@@ -58,11 +63,16 @@ public class StartActivity extends AppCompatActivity implements MarketFragment.O
     private TheResponse response;
     SupportMapFragment mapFragment;
     MarketFragment listFragment;
-
+    private int spinnerSelectedIndex=0;
+    EditText searchText;
     Location location;
+    //control user search and move map view to searched Market
+    boolean moveMapToMarket = false;
     //for testing purpose only
-    TextView text1;
+    private Marker userPostionMarker;
+    private ArrayList<Marker> markers = new ArrayList<>();
     ArrayList<Market> marketArrayList= new ArrayList<>();
+    ArrayList<Market> marketArrayListAfterSearch = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,10 +81,18 @@ public class StartActivity extends AppCompatActivity implements MarketFragment.O
         geocoder = new Geocoder(this);
         mapFragment =(SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.marketMap);
         listFragment = (MarketFragment) getSupportFragmentManager().findFragmentById(R.id.marketList);
-        text1 = (TextView) findViewById(R.id.txt1);
         response = new TheResponse(this);
+        Spinner searchSpinner = (Spinner) findViewById(R.id.searchSpinner);
+        String[] spinnerItems = new String[]{"by Zipcode","by Product", "by Name","by City"};
+        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, spinnerItems);
+        searchSpinner.setAdapter(spinnerAdapter);
+        searchSpinner.setSelection(0);
+        searchText = (EditText) findViewById(R.id.searchTxt);
+
+
+
         if(!checkPermission()){
-            text1.setText("Please grant permission first");
+            //text1.setText("Please grant permission first");
 
         }else {
 
@@ -104,7 +122,7 @@ public class StartActivity extends AppCompatActivity implements MarketFragment.O
 
 
 
-                text1.setText(currentPostCode);
+                //text1.setText(currentPostCode);
 
                 }
 
@@ -121,6 +139,20 @@ public class StartActivity extends AppCompatActivity implements MarketFragment.O
 
 
         }
+
+        //Search spinner listener
+        searchSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                spinnerSelectedIndex = position;
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
     }
 
 
@@ -141,6 +173,45 @@ public class StartActivity extends AppCompatActivity implements MarketFragment.O
     @Override
     public void onListFragmentInteraction(Market item) {
 
+        Log.d("marketClicked", item.marketName);
+        startDetailActivity(item);
+
+
+
+    }
+
+    //search button listener
+    public void userSearch(View view) {
+        String searchInput = searchText.getText().toString().trim();
+        searchText.setText("");
+        if(searchInput.length()>0&&marketArrayList.size()>0){
+            switch (spinnerSelectedIndex){
+                case 0:
+                    Log.d("searchClicked", "by Zipcode");
+                    searchByZipCode(searchInput);
+                    moveMapToMarket=true;
+                    break;
+                case 1:
+                    Log.d("searchClicked", "by Product");
+                    marketArrayListAfterSearch = searchByProduct(searchInput, marketArrayList);
+                    listFragment.setDataView(marketArrayListAfterSearch);
+                    createMapMarker(marketArrayListAfterSearch);
+                    break;
+                case 2:
+                    Log.d("searchClicked", "by Name");
+                    marketArrayListAfterSearch = searchByName(searchInput, marketArrayList);
+                    listFragment.setDataView(marketArrayListAfterSearch);
+                    createMapMarker(marketArrayListAfterSearch);
+                    break;
+                case 3:
+                    Log.d("searchClicked", "by City");
+                    break;
+
+            }
+        }
+
+
+
     }
 
 
@@ -157,39 +228,44 @@ public class StartActivity extends AppCompatActivity implements MarketFragment.O
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(STATUS_DONE_1)) {
                 String marketText= intent.getStringExtra("output");
-                Log.d("newZipCodeStart Service", marketText);
-                marketArrayList= new ArrayList<>();
-                ArrayList<String> ids = new ArrayList<>();
-                try{
-                    JSONObject markets = new JSONObject(marketText);
-                    JSONArray marketAr = markets.getJSONArray("results");
-                    JSONObject element;
+                if(marketText != null) {
+                    Log.d("newZipCodeStart Service", marketText);
+                    marketArrayList = new ArrayList<>();
+                    ArrayList<String> ids = new ArrayList<>();
+                    try {
+                        JSONObject markets = new JSONObject(marketText);
+                        JSONArray marketAr = markets.getJSONArray("results");
+                        JSONObject element;
 
-                    String tempName;
-                    Market mt;
-                    for(int i=0; i<marketAr.length();i++){
-                        element=marketAr.getJSONObject(i);
-                        mt = new Market();
-                        mt.id = element.getInt("id");
-                        tempName = element.getString("marketname").trim();
-                        String [] tempNames = tempName.split(" ");
-                        mt.distance = Double.parseDouble(tempNames[0]);
-                        mt.marketName = tempName.substring(tempNames[0].length()+1);
-                        marketArrayList.add(mt);
-                        ids.add(element.getString("id"));
+                        String tempName;
+                        Market mt;
+                        for (int i = 0; i < marketAr.length(); i++) {
+                            element = marketAr.getJSONObject(i);
+                            mt = new Market();
+                            mt.id = element.getInt("id");
+                            tempName = element.getString("marketname").trim();
+                            String[] tempNames = tempName.split(" ");
+                            mt.distance = Double.parseDouble(tempNames[0]);
+                            mt.marketName = tempName.substring(tempNames[0].length() + 1);
+                            marketArrayList.add(mt);
+                            ids.add(element.getString("id"));
+                        }
+
+                    } catch (Exception e) {
+                        Log.d("MainActivity", e.getMessage());
                     }
 
-                }catch (Exception e){
-                    Log.d("MainActivity", e.getMessage());
+
+                    listFragment.setDataView(marketArrayList);
+                    Intent detailDownloadService = new Intent(StartActivity.this, DownloadService.class);
+                    detailDownloadService.putStringArrayListExtra("IDS", ids);
+                    detailDownloadService.putExtra("SERVICETYPE", "byMarketIDs");
+                    startService(detailDownloadService);
+                }else{
+                    Toast.makeText(StartActivity.this, "The Postal Code is not Valid, please double check", Toast.LENGTH_LONG).show();
+                    moveMapToMarket=false;
+
                 }
-
-
-                listFragment.setDataView(marketArrayList);
-                Intent detailDownloadService = new Intent(StartActivity.this, DownloadService.class);
-                detailDownloadService.putStringArrayListExtra("IDS", ids);
-                detailDownloadService.putExtra("SERVICETYPE", "byMarketIDs");
-                startService(detailDownloadService);
-
             }
             else if(intent.getAction().equals(STATUS_DONE_2)){
                 String marketDetail = intent.getStringExtra("output");
@@ -212,6 +288,11 @@ public class StartActivity extends AppCompatActivity implements MarketFragment.O
                 }
 
                 listFragment.setDataView(marketArrayList);
+
+                if(moveMapToMarket){
+                    LatLng searchedLatlng = getLatlng(marketArrayList.get(0).marketDetail.googleLink);
+                   gotoLocation(searchedLatlng.latitude,searchedLatlng.longitude,10,null,true);
+                }
                 createMapMarker(marketArrayList);
 
             }
@@ -348,6 +429,7 @@ public class StartActivity extends AppCompatActivity implements MarketFragment.O
 
                     mLocationClient.connect();
 
+
                     mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
                         @Override
                         public void onMapLongClick(LatLng latLng) {
@@ -372,6 +454,22 @@ public class StartActivity extends AppCompatActivity implements MarketFragment.O
                             gotoLocation(latLng.latitude,latLng.longitude,10,null,false);
                         }
                     });
+
+                    mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+                        @Override
+                        public void onInfoWindowClick(Marker marker) {
+                            String marketName = marker.getTitle();
+                            for(Market market: marketArrayList){
+                                if(marketName.equals(market.marketName)){
+                                    Log.d("marketClicked", market.marketName);
+                                    startDetailActivity(market);
+                                }
+                            }
+                        }
+                    });
+
+
+
 
                 }
             });
@@ -407,8 +505,8 @@ public class StartActivity extends AppCompatActivity implements MarketFragment.O
                 .draggable(true)
                 .position(new LatLng(lat, lng));
 
-        Marker marker = mMap.addMarker(options);
-        markers.add(marker);
+        userPostionMarker = mMap.addMarker(options);
+        markers.add(userPostionMarker);
         if (moveCamera) {
             CameraUpdate update = CameraUpdateFactory.newLatLngZoom(latLng, zoom);
             mMap.moveCamera(update);
@@ -417,28 +515,68 @@ public class StartActivity extends AppCompatActivity implements MarketFragment.O
 
 
     private void createMapMarker(ArrayList<Market> marketList){
+
+        if(markers.size()>0){
+            for(Marker marker : markers) {
+                if (marker != userPostionMarker)
+                    marker.remove();
+            }
+            markers.clear();
+            markers.add(userPostionMarker);
+        }
+
+
         String googleLink="";
-        double lat, lng;
         for(Market market: marketList){
             googleLink = market.marketDetail.googleLink;
-            String[] splitLink = googleLink.split("%2C%20");
-            String[] splitLink2 = splitLink[1].split("%20");
 
-            Log.d("LATANDLNG", googleLink);
-            Log.d("LATANDLNG", splitLink[0].substring(26)+", "+splitLink2[0]);
-            lat= Double.parseDouble(splitLink[0].substring(26));
-            lng= Double.parseDouble(splitLink2[0]);
             Marker marker = mMap.addMarker(new MarkerOptions().title(market.marketName)
                     .snippet(market.marketDetail.address)
                     .draggable(false)
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN))
-                    .position(new LatLng(lat, lng))
+                    .position(getLatlng(googleLink))
                 );
             markers.add(marker);
 
         }
+    }
+
+    private LatLng getLatlng(String googleLink){
+        double lat, lng;
+
+        String[] splitLink = googleLink.split("%2C%20");
+        String[] splitLink2 = splitLink[1].split("%20");
+
+        lat= Double.parseDouble(splitLink[0].substring(26));
+        lng= Double.parseDouble(splitLink2[0]);
+
+        return new LatLng(lat, lng);
+    }
+
+    private ArrayList<Market> searchByProduct(String keyword, ArrayList<Market> originalList){
+        ArrayList<Market> searchResult = new ArrayList<>();
+
+        for(Market market: originalList){
+            if(market.marketDetail.products.contains(keyword)) searchResult.add(market);
+
+        }
+
+        return searchResult;
+    }
+
+    private ArrayList<Market> searchByName(String keyword, ArrayList<Market> originalList){
+        ArrayList<Market> searchResult = new ArrayList<>();
+
+        for(Market market: originalList){
+            if(market.marketName.contains(keyword)) searchResult.add(market);
+
+        }
+
+        return searchResult;
+    }
 
 
+    private void startDetailActivity(Market market){
 
     }
 
@@ -489,7 +627,7 @@ public class StartActivity extends AppCompatActivity implements MarketFragment.O
             String msg = "New Latitude: " + latitude +"  New Longitude: " + longitude + "zipcode : "+ currentPostCode;
 
 
-            text1.setText(msg);
+            //text1.setText(msg);
         }
         @Override
         public void onStatusChanged(String s, int i, Bundle bundle) {

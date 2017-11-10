@@ -14,7 +14,7 @@
 
         <EditText
             android:id="@+id/searchTxt"
-            android:layout_width="200dp"
+            android:layout_width="100dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:ems="10"
@@ -23,10 +23,10 @@
 
         <Spinner
             android:id="@+id/searchSpinner"
-            android:layout_width="50dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:spinnerMode="dialog"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:spinnerMode="dialog" />
 
         <Button
             android:id="@+id/searchBtn"
@@ -37,6 +37,20 @@
             android:text="Search" />
 
 
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/startLine2"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/button2"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="More Options" />
     </LinearLayout>
 
     <LinearLayout

@@ -17,13 +17,16 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -133,7 +136,10 @@ public class StartActivity extends AppCompatActivity implements MarketFragment.O
             }
             else {
                 setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-                getSupportFragmentManager().beginTransaction().hide(mapFragment).commit();
+
+                this.phoneLayoutSetup();
+
+
             }
 
 
@@ -213,6 +219,35 @@ public class StartActivity extends AppCompatActivity implements MarketFragment.O
 
 
     }
+
+    //phone layout setup
+    public void phoneLayoutSetup(){
+        LinearLayout startLine2 = (LinearLayout) findViewById(R.id.startLine2);
+        final Button viewSwitchBtn = new Button(this);
+        viewSwitchBtn.setText("Map View");
+        getSupportFragmentManager().beginTransaction().hide(mapFragment).commit();
+
+        viewSwitchBtn.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                FragmentManager myFM1 = getSupportFragmentManager();
+                FragmentManager myFM2 = getSupportFragmentManager();
+                if(listFragment.isVisible()){
+                    viewSwitchBtn.setText("List View");
+                    myFM1.beginTransaction().hide(listFragment).commit();
+                    myFM2.beginTransaction().show(mapFragment).commit();
+                }else{
+                    viewSwitchBtn.setText("Map View");
+                    myFM1.beginTransaction().show(listFragment).commit();
+                    myFM2.beginTransaction().hide(mapFragment).commit();
+                }
+            }
+        });
+
+        startLine2.addView(viewSwitchBtn);
+
+    }
+
 
 
     //Response class to receive broadcast

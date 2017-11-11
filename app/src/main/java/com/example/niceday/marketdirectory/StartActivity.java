@@ -159,6 +159,18 @@ public class StartActivity extends AppCompatActivity implements MarketFragment.O
             }
         });
 
+
+        Button moreOptionsBtn = (Button) findViewById(R.id.moreOptionsBtn);
+        moreOptionsBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(StartActivity.this, MoreOptionsActivity.class);
+                startActivity(intent);
+            }
+        });
+
+
+
     }
 
 

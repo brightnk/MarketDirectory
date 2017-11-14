@@ -6,10 +6,26 @@
     android:orientation="vertical"
     tools:context="com.example.niceday.marketdirectory.MoreOptionsActivity">
 
-    <TextView
-        android:id="@+id/textView"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="TextView" />
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        >
+
+        <fragment
+            android:id="@+id/moreOptionList"
+            android:name="com.example.niceday.marketdirectory.MoreOptionListFragment"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent" />
+
+        <fragment
+            android:id="@+id/moreOptionDetail"
+            android:name="com.example.niceday.marketdirectory.MoreOptionDetailFragment"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="2" />
+
+    </LinearLayout>
+
 </LinearLayout>

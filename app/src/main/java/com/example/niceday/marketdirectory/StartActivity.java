@@ -103,6 +103,7 @@ public class StartActivity extends AppCompatActivity implements MarketFragment.O
             mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
             mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0,
                     0, this);
+
             mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000,
                     10, mLocationListener);
             //get last updated location
@@ -112,7 +113,6 @@ public class StartActivity extends AppCompatActivity implements MarketFragment.O
                 location=mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             }
             //get current location's zipcode
-
             if(location==null){
                 Log.d("Location", "can not get location");
             }else{
@@ -120,6 +120,7 @@ public class StartActivity extends AppCompatActivity implements MarketFragment.O
                 currentLocation = location;
                 currentPostCode = getZipCode(location);
                 if(servicesOK())initMap();
+
                 searchByZipCode(currentPostCode);
 
 
@@ -402,7 +403,7 @@ public class StartActivity extends AppCompatActivity implements MarketFragment.O
 
     public String getZipCode(double longitude, double latitude){
         List<Address> address = null;
-
+        Log.d("zipcode", String.valueOf(longitude)+" "+String.valueOf(latitude));
         if (geocoder != null) {
             try {
                 address = geocoder.getFromLocation(latitude, longitude, 1);
@@ -675,10 +676,8 @@ public class StartActivity extends AppCompatActivity implements MarketFragment.O
             double latitude = location.getLatitude();
             double longitude = location.getLongitude();
             currentPostCode = getZipCode(location);
-            String msg = "New Latitude: " + latitude +"  New Longitude: " + longitude + "zipcode : "+ currentPostCode;
+            searchByZipCode(currentPostCode);
 
-
-            //text1.setText(msg);
         }
         @Override
         public void onStatusChanged(String s, int i, Bundle bundle) {

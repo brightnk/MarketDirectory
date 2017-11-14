@@ -1,5 +1,6 @@
 package com.example.niceday.marketdirectory;
 
+import android.content.pm.ActivityInfo;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -13,6 +14,15 @@ public class DetailActivity extends AppCompatActivity {
         setContentView(R.layout.activity_detail);
         Market selectedMarket = (Market)getIntent().getSerializableExtra("SelectedMarket");
         Log.d("DetailActivity", selectedMarket.marketName);
+
+        boolean istablet = getResources().getBoolean(R.bool.isTablet);
+        if(istablet){
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        }
+        else {
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        }
+
 
         ((TextView)findViewById(R.id.marketNameTxt)).setText(selectedMarket.marketName);
         ((TextView)findViewById(R.id.marketIdTxt)).setText(String.valueOf("Market ID: " + selectedMarket.id));

@@ -4,73 +4,140 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 
-/**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link MoreOptionListFragment.OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link MoreOptionListFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
-public class MoreOptionListFragment extends Fragment {
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+import java.util.ArrayList;
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+
+public class MoreOptionListFragment extends Fragment implements View.OnClickListener{
+
+
 
     private OnFragmentInteractionListener mListener;
+    public ArrayList<USStates> selectedStates = new ArrayList<>();
+    public String usStateString = "[" +
+            "    { name: 'ALABAMA', abbreviation: 'AL'}," +
+            "    { name: 'ALASKA', abbreviation: 'AK'}," +
+            "    { name: 'AMERICAN SAMOA', abbreviation: 'AS'}," +
+            "    { name: 'ARIZONA', abbreviation: 'AZ'}," +
+            "    { name: 'ARKANSAS', abbreviation: 'AR'}," +
+            "    { name: 'CALIFORNIA', abbreviation: 'CA'}," +
+            "    { name: 'COLORADO', abbreviation: 'CO'}," +
+            "    { name: 'CONNECTICUT', abbreviation: 'CT'}," +
+            "    { name: 'DELAWARE', abbreviation: 'DE'}," +
+            "    { name: 'DISTRICT OF COLUMBIA', abbreviation: 'DC'}," +
+            "    { name: 'FEDERATED STATES OF MICRONESIA', abbreviation: 'FM'}," +
+            "    { name: 'FLORIDA', abbreviation: 'FL'}," +
+            "    { name: 'GEORGIA', abbreviation: 'GA'}," +
+            "    { name: 'GUAM', abbreviation: 'GU'}, " +
+            "    { name: 'HAWAII', abbreviation: 'HI'}," +
+            "    { name: 'IDAHO', abbreviation: 'ID'}," +
+            "    { name: 'ILLINOIS', abbreviation: 'IL'}," +
+            "    { name: 'INDIANA', abbreviation: 'IN'}," +
+            "    { name: 'IOWA', abbreviation: 'IA'}," +
+            "    { name: 'KANSAS', abbreviation: 'KS'}," +
+            "    { name: 'KENTUCKY', abbreviation: 'KY'}," +
+            "    { name: 'LOUISIANA', abbreviation: 'LA'}," +
+            "    { name: 'MAINE', abbreviation: 'ME'}," +
+            "    { name: 'MARSHALL ISLANDS', abbreviation: 'MH'}," +
+            "    { name: 'MARYLAND', abbreviation: 'MD'}," +
+            "    { name: 'MASSACHUSETTS', abbreviation: 'MA'}," +
+            "    { name: 'MICHIGAN', abbreviation: 'MI'}," +
+            "    { name: 'MINNESOTA', abbreviation: 'MN'}," +
+            "    { name: 'MISSISSIPPI', abbreviation: 'MS'}," +
+            "    { name: 'MISSOURI', abbreviation: 'MO'}," +
+            "    { name: 'MONTANA', abbreviation: 'MT'}," +
+            "    { name: 'NEBRASKA', abbreviation: 'NE'}," +
+            "    { name: 'NEVADA', abbreviation: 'NV'}," +
+            "    { name: 'NEW HAMPSHIRE', abbreviation: 'NH'}," +
+            "    { name: 'NEW JERSEY', abbreviation: 'NJ'}," +
+            "    { name: 'NEW MEXICO', abbreviation: 'NM'}," +
+            "    { name: 'NEW YORK', abbreviation: 'NY'}," +
+            "    { name: 'NORTH CAROLINA', abbreviation: 'NC'}," +
+            "    { name: 'NORTH DAKOTA', abbreviation: 'ND'}," +
+            "    { name: 'NORTHERN MARIANA ISLANDS', abbreviation: 'MP'}," +
+            "    { name: 'OHIO', abbreviation: 'OH'}," +
+            "    { name: 'OKLAHOMA', abbreviation: 'OK'}," +
+            "    { name: 'OREGON', abbreviation: 'OR'}," +
+            "    { name: 'PALAU', abbreviation: 'PW'}," +
+            "    { name: 'PENNSYLVANIA', abbreviation: 'PA'}," +
+            "    { name: 'PUERTO RICO', abbreviation: 'PR'}," +
+            "    { name: 'RHODE ISLAND', abbreviation: 'RI'}," +
+            "    { name: 'SOUTH CAROLINA', abbreviation: 'SC'}," +
+            "    { name: 'SOUTH DAKOTA', abbreviation: 'SD'}," +
+            "    { name: 'TENNESSEE', abbreviation: 'TN'}," +
+            "    { name: 'TEXAS', abbreviation: 'TX'}," +
+            "    { name: 'UTAH', abbreviation: 'UT'}," +
+            "    { name: 'VERMONT', abbreviation: 'VT'}," +
+            "    { name: 'VIRGIN ISLANDS', abbreviation: 'VI'}," +
+            "    { name: 'VIRGINIA', abbreviation: 'VA'}," +
+            "    { name: 'WASHINGTON', abbreviation: 'WA'}," +
+            "    { name: 'WEST VIRGINIA', abbreviation: 'WV'}," +
+            "    { name: 'WISCONSIN', abbreviation: 'WI'}," +
+            "    { name: 'WYOMING', abbreviation: 'WY' }" +
+            "]";
+
+    public ArrayList<USStates> usStates = new ArrayList<>();
 
     public MoreOptionListFragment() {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment MoreOptionListFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static MoreOptionListFragment newInstance(String param1, String param2) {
-        MoreOptionListFragment fragment = new MoreOptionListFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+        try {
+            JSONArray statesArray = new JSONArray(usStateString);
+            JSONObject element;
+
+            USStates state;
+            for(int i=0; i<statesArray.length();i++){
+                element = statesArray.getJSONObject(i);
+                state = new USStates();
+                state.name = element.getString("name");
+                state.abbr = element.getString("abbreviation");
+                usStates.add(state);
+            }
+
+
+
+        }catch (Exception e){
+            Log.d("JSONarray", e.getMessage());
         }
+
+
+
+
+
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_more_option_list, container, false);
+        View view = inflater.inflate(R.layout.fragment_more_option_list, container, false);
+        view.findViewById(R.id.moreOptionList1).setOnClickListener(this);
+        view.findViewById(R.id.moreOptionList2).setOnClickListener(this);
+        view.findViewById(R.id.moreOptionList3).setOnClickListener(this);
+        view.findViewById(R.id.moreOptionList4).setOnClickListener(this);
+        view.findViewById(R.id.moreOptionList5).setOnClickListener(this);
+        view.findViewById(R.id.moreOptionList6).setOnClickListener(this);
+
+        return view;
     }
 
     // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
+    public void updateDetailFragment(ArrayList<USStates> states) {
         if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
+            mListener.onFragmentInteraction(states);
         }
     }
 
@@ -91,6 +158,54 @@ public class MoreOptionListFragment extends Fragment {
         mListener = null;
     }
 
+    @Override
+    public void onClick(View v) {
+        selectedStates.clear();
+        switch (v.getId()){
+            case R.id.moreOptionList1:
+                Log.d("listItemClicked", "A-D");
+                updateMoreOptionDetailFragment('A','B','C','D');
+                break;
+            case R.id.moreOptionList2:
+                Log.d("listItemClicked", "E-H");
+                updateMoreOptionDetailFragment('E','F','G','H');
+                break;
+            case R.id.moreOptionList3:
+                Log.d("listItemClicked", "I-L");
+                updateMoreOptionDetailFragment('I','J','K','L');
+                break;
+            case R.id.moreOptionList4:
+                Log.d("listItemClicked", "M-P");
+                updateMoreOptionDetailFragment('M','N','O','P');
+                break;
+            case R.id.moreOptionList5:
+                Log.d("listItemClicked", "Q-T");
+                updateMoreOptionDetailFragment('Q','R','S','T');
+                break;
+            case R.id.moreOptionList6:
+                Log.d("listItemClicked", "U-Z");
+                updateMoreOptionDetailFragment('U','V','W','X','Y','Z');
+                break;
+            default:
+                Log.d("listItemClicked", "no thing clicked");
+                break;
+        }
+    }
+
+    public void updateMoreOptionDetailFragment(char...letters){
+        for (USStates state:usStates) {
+            char letter = state.name.charAt(0);
+
+            for(char key: letters){
+                if(letter ==key) selectedStates.add(state);
+            }
+        }
+        updateDetailFragment(selectedStates);
+    }
+
+
+
+
     /**
      * This interface must be implemented by activities that contain this
      * fragment to allow an interaction in this fragment to be communicated
@@ -103,6 +218,6 @@ public class MoreOptionListFragment extends Fragment {
      */
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
-        void onFragmentInteraction(Uri uri);
+        void onFragmentInteraction(ArrayList<USStates> states);
     }
 }

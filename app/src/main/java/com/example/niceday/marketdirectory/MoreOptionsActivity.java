@@ -5,11 +5,14 @@ import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
+import java.util.ArrayList;
 
 
 public class MoreOptionsActivity extends AppCompatActivity implements MoreOptionListFragment.OnFragmentInteractionListener, MoreOptionDetailFragment.OnFragmentInteractionListener {
 
-    @Override
+
+    MoreOptionDetailFragment moreOptionDetailFragment;
+    MoreOptionListFragment moreOptionListFragment;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_more_options);
@@ -22,8 +25,8 @@ public class MoreOptionsActivity extends AppCompatActivity implements MoreOption
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         }
 
-        MoreOptionListFragment moreOptionListFragment = (MoreOptionListFragment) getSupportFragmentManager().findFragmentById(R.id.moreOptionList);
-        MoreOptionDetailFragment moreOptionDetailFragment  = (MoreOptionDetailFragment) getSupportFragmentManager().findFragmentById(R.id.moreOptionDetail);
+        moreOptionListFragment = (MoreOptionListFragment) getSupportFragmentManager().findFragmentById(R.id.moreOptionList);
+        moreOptionDetailFragment  = (MoreOptionDetailFragment) getSupportFragmentManager().findFragmentById(R.id.moreOptionDetail);
 
 
     }
@@ -32,5 +35,10 @@ public class MoreOptionsActivity extends AppCompatActivity implements MoreOption
     @Override
     public void onFragmentInteraction(Uri uri) {
 
+    }
+
+    @Override
+    public void onFragmentInteraction(ArrayList<USStates> states) {
+        moreOptionDetailFragment.setupDetailView(states);
     }
 }

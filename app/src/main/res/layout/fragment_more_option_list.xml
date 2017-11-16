@@ -4,13 +4,94 @@
     android:layout_height="match_parent"
     tools:context="com.example.niceday.marketdirectory.MoreOptionListFragment">
 
-    <!-- TODO: Update blank fragment layout -->
     <LinearLayout
-        android:id="@+id/optionList"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:orientation="horizontal">
+        <LinearLayout
+            android:id="@+id/optionList"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
+            <TextView
+                android:id="@+id/moreOptionList1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="A-D"
+                android:textAppearance="@style/TextAppearance.AppCompat.Large" />
+
+            <View
+                android:layout_width="fill_parent"
+                android:layout_height="2dip"
+                android:background="#FF00FF00" />
+
+            <TextView
+                android:id="@+id/moreOptionList2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="E-H"
+                android:textAppearance="@style/TextAppearance.AppCompat.Large" />
+            <View
+                android:layout_width="fill_parent"
+                android:layout_height="2dip"
+                android:background="#FF00FF00" />
+
+            <TextView
+                android:id="@+id/moreOptionList3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="I-L"
+                android:textAppearance="@style/TextAppearance.AppCompat.Large" />
+            <View
+                android:layout_width="fill_parent"
+                android:layout_height="2dip"
+                android:background="#FF00FF00" />
+
+            <TextView
+                android:id="@+id/moreOptionList4"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="M-P"
+                android:textAppearance="@style/TextAppearance.AppCompat.Large" />
+            <View
+                android:layout_width="fill_parent"
+                android:layout_height="2dip"
+                android:background="#FF00FF00" />
+
+            <TextView
+                android:id="@+id/moreOptionList5"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="Q-T"
+                android:textAppearance="@style/TextAppearance.AppCompat.Large" />
+            <View
+                android:layout_width="fill_parent"
+                android:layout_height="2dip"
+                android:background="#FF00FF00" />
+
+            <TextView
+                android:id="@+id/moreOptionList6"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="U-Z"
+                android:textAppearance="@style/TextAppearance.AppCompat.Large" />
+            <View
+                android:layout_width="fill_parent"
+                android:layout_height="2dip"
+                android:background="#FF00FF00" />
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="2dp"
+            android:layout_height="fill_parent"
+            android:background="#FF00FF00" />
     </LinearLayout>
-
 </FrameLayout>

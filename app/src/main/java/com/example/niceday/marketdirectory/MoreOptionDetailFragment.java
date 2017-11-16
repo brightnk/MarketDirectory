@@ -1,6 +1,7 @@
 package com.example.niceday.marketdirectory;
 
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -97,6 +98,10 @@ public class MoreOptionDetailFragment extends Fragment implements View.OnClickLi
     public void onClick(View v) {
         Log.d("detailfragment", ((USStates)v.getTag()).name);
 
+        Intent downloadService = new Intent(getActivity(), DownloadService.class);
+        downloadService.putExtra("SERVICETYPE", "byStateCode");
+        downloadService.putExtra("StateCode", ((USStates)v.getTag()).abbr);
+        getActivity().startService(downloadService);
 
 
     }

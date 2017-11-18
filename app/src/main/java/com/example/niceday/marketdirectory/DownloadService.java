@@ -60,6 +60,13 @@ public class DownloadService extends IntentService{
                                 results = results.substring(1,results.length()-1);
                 break;
 
+            case "byCityName": searchLink = "http://gomashup.com/json.php?fds=geo/usa/zipcode/city/"+intent.getStringExtra("CityName");
+                                finishFlag = StartActivity.TheResponse.STATUS_DONE_4;
+                                results = getRemoteData(searchLink);
+                                results = results.substring(1,results.length()-2);
+                                Log.d("SEARCHBYCITY", results);
+                break;
+
         }
 
 

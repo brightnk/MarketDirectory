@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
@@ -18,6 +19,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentManager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -27,6 +29,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.RadioButton;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -76,6 +79,8 @@ public class StartActivity extends AppCompatActivity implements MarketFragment.O
     private ArrayList<Marker> markers = new ArrayList<>();
     ArrayList<Market> marketArrayList= new ArrayList<>();
     ArrayList<Market> marketArrayListAfterSearch = new ArrayList<>();
+    ArrayList<USCities> cityLists = new ArrayList<>();
+
     public final static int REQUESTCODE = 9103;
     public final static int RESULTCODE = 9333;
     @Override
@@ -198,8 +203,10 @@ public class StartActivity extends AppCompatActivity implements MarketFragment.O
         super.onResume();
         IntentFilter filter1 = new IntentFilter(TheResponse.STATUS_DONE_1);
         IntentFilter filter2 = new IntentFilter(TheResponse.STATUS_DONE_2);
+        IntentFilter filter3 = new IntentFilter(TheResponse.STATUS_DONE_4);
         registerReceiver(response,filter1);
         registerReceiver(response,filter2);
+        registerReceiver(response,filter3);
     }
 
     @Override
@@ -215,8 +222,9 @@ public class StartActivity extends AppCompatActivity implements MarketFragment.O
     //search button listener
     public void userSearch(View view) {
         String searchInput = searchText.getText().toString().trim();
+        Log.d("searchClicked",searchInput);
         searchText.setText("");
-        if(searchInput.length()>0&&marketArrayList.size()>0){
+        if(searchInput.length()>0){
             switch (spinnerSelectedIndex){
                 case 0:
                     Log.d("searchClicked", "by Zipcode");
@@ -225,22 +233,44 @@ public class StartActivity extends AppCompatActivity implements MarketFragment.O
                     break;
                 case 1:
                     Log.d("searchClicked", "by Product");
-                    marketArrayListAfterSearch = searchByProduct(searchInput, marketArrayList);
-                    listFragment.setDataView(marketArrayListAfterSearch);
-                    createMapMarker(marketArrayListAfterSearch);
+                    if(marketArrayList.size()>0) {
+                        marketArrayListAfterSearch = searchByProduct(searchInput, marketArrayList);
+                        listFragment.setDataView(marketArrayListAfterSearch);
+                        createMapMarker(marketArrayListAfterSearch);
+                    }
                     break;
                 case 2:
                     Log.d("searchClicked", "by Name");
-                    marketArrayListAfterSearch = searchByName(searchInput, marketArrayList);
-                    listFragment.setDataView(marketArrayListAfterSearch);
-                    createMapMarker(marketArrayListAfterSearch);
+                    if(marketArrayList.size()>0) {
+                        marketArrayListAfterSearch = searchByName(searchInput, marketArrayList);
+                        listFragment.setDataView(marketArrayListAfterSearch);
+                        createMapMarker(marketArrayListAfterSearch);
+                    }
                     break;
                 case 3:
                     Log.d("searchClicked", "by City");
+                    searchByCity(searchInput);
+                    moveMapToMarket=true;
                     break;
 
             }
         }
+
+
+
+    }
+
+    private void searchByCity(String searchInput) {
+        String searchKeyWord = searchInput.trim().toUpperCase();
+        if(searchKeyWord.length()>0){
+
+            Intent downloadService = new Intent(StartActivity.this, DownloadService.class);
+            downloadService.putExtra("SERVICETYPE", "byCityName");
+            downloadService.putExtra("CityName", searchKeyWord);
+            startService(downloadService);
+
+        }
+
 
 
 
@@ -285,6 +315,8 @@ public class StartActivity extends AppCompatActivity implements MarketFragment.O
         }
         public static final String STATUS_DONE_1 = "com.example.intentservebroaddemo_v1.ALL_DONE";
         public static final String STATUS_DONE_2 = "com.example.intentservebroaddemo_v1.ALL_Detail_DONE";
+        public static final String STATUS_DONE_4 = "com.example.intentservebroaddemo_v1.ALL_City_DONE";
+
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(STATUS_DONE_1)) {
@@ -356,6 +388,59 @@ public class StartActivity extends AppCompatActivity implements MarketFragment.O
                 }
                 createMapMarker(marketArrayList);
 
+            }
+            else if(intent.getAction().equals(STATUS_DONE_4)){
+                String citysString = intent.getStringExtra("output");
+                try {
+                    JSONObject cities = new JSONObject(citysString);
+                    JSONArray cityArr = cities.getJSONArray("result");
+                    JSONObject cityObject;
+                    USCities tempCity;
+
+                    for(int i=0; i<cityArr.length();i++){
+                        cityObject = cityArr.getJSONObject(i);
+                        tempCity = new USCities();
+                        tempCity.name = cityObject.getString("City");
+                        tempCity.postcode = cityObject.getString("Zipcode");
+                        tempCity.state = cityObject.getString("State");
+                        cityLists.add(tempCity);
+                    }
+
+                    if(cityLists.size()>1){
+
+
+                        Log.d("ALERTTOSHOW", cityLists.get(1).name);
+
+                        ArrayList<String> states = new ArrayList<>();
+                        for(USCities city: cityLists){
+                            states.add(city.state);
+                        }
+
+                        String[] stateArr = states.toArray(new String[states.size()]);
+
+
+                        AlertDialog.Builder dialog = new AlertDialog.Builder(StartActivity.this);
+                        dialog.setTitle("Please select the State for the city:");
+                        dialog.setCancelable(true);
+                        dialog.setSingleChoiceItems(stateArr, -1, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                USCities selectedCity = cityLists.get(which);
+                                searchByZipCode(selectedCity.postcode);
+                                dialog.cancel();
+                            }
+                        });
+
+                        AlertDialog alert = dialog.create();
+                        alert.show();
+
+                    }
+
+
+
+                }catch (Exception e){
+                    Log.d("SEARCHBYCITY", e.getMessage());
+                }
             }
         }
 

@@ -7,7 +7,7 @@ package com.example.niceday.marketdirectory;
 public class USCities {
     String name;
     String postcode;
-
+    String state="";
     public USCities(){}
 
 }

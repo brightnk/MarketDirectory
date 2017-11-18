@@ -76,7 +76,8 @@ public class StartActivity extends AppCompatActivity implements MarketFragment.O
     private ArrayList<Marker> markers = new ArrayList<>();
     ArrayList<Market> marketArrayList= new ArrayList<>();
     ArrayList<Market> marketArrayListAfterSearch = new ArrayList<>();
-
+    public final static int REQUESTCODE = 9103;
+    public final static int RESULTCODE = 9333;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -104,8 +105,8 @@ public class StartActivity extends AppCompatActivity implements MarketFragment.O
             mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0,
                     0, this);
 
-            mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000,
-                    10, mLocationListener);
+            //mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000,
+            //        10, mLocationListener);
             //get last updated location
             location = mLocationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
 
@@ -166,10 +167,22 @@ public class StartActivity extends AppCompatActivity implements MarketFragment.O
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(StartActivity.this, MoreOptionsActivity.class);
-                startActivity(intent);
+                startActivityForResult(intent, REQUESTCODE);
             }
         });
 
+    }
+
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data){
+
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode==REQUESTCODE&&resultCode==RESULTCODE){
+            String zipcode = data.getStringExtra("zipcode");
+            searchByZipCode(zipcode);
+            moveMapToMarket=true;
+        }
 
 
     }
@@ -395,7 +408,10 @@ public class StartActivity extends AppCompatActivity implements MarketFragment.O
         downloadService.putExtra("Zipcode", postCode);
         startService(downloadService);
         }else{
-            Toast.makeText(this, "No valid zipcode @ this point", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "No valid zipcode @ this point, switch to default", Toast.LENGTH_SHORT).show();
+            postCode ="89128";
+            searchByZipCode(postCode);
+            moveMapToMarket=true;
 
         }
     }

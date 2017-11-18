@@ -20,7 +20,11 @@ public class MoreOptionListFragment extends Fragment implements View.OnClickList
 
 
     private OnFragmentInteractionListener mListener;
+    public ArrayList<USStates> usStates = new ArrayList<>();
+    public ArrayList<USCities> usCities = new ArrayList<>();
     public ArrayList<USStates> selectedStates = new ArrayList<>();
+    public ArrayList<USCities> selectedCities = new ArrayList<>();
+    boolean showCity =false;
     public String usStateString = "[" +
             "    { name: 'ALABAMA', abbreviation: 'AL'}," +
             "    { name: 'ALASKA', abbreviation: 'AK'}," +
@@ -83,7 +87,7 @@ public class MoreOptionListFragment extends Fragment implements View.OnClickList
             "    { name: 'WYOMING', abbreviation: 'WY' }" +
             "]";
 
-    public ArrayList<USStates> usStates = new ArrayList<>();
+
 
     public MoreOptionListFragment() {
         // Required empty public constructor
@@ -130,14 +134,28 @@ public class MoreOptionListFragment extends Fragment implements View.OnClickList
         view.findViewById(R.id.moreOptionList4).setOnClickListener(this);
         view.findViewById(R.id.moreOptionList5).setOnClickListener(this);
         view.findViewById(R.id.moreOptionList6).setOnClickListener(this);
-
+        //initial detail page show A-D by default
+        //updateMoreOptionDetailFragment('A','B','C','D');
         return view;
     }
 
+
+
+    public void setCities(ArrayList<USCities> citiesList){
+        this.usCities = citiesList;
+        this.showCity =true;
+        Log.d("SHOWCITY", String.valueOf(showCity));
+    }
+
+
+
+
+
+
     // TODO: Rename method, update argument and hook method into UI event
-    public void updateDetailFragment(ArrayList<USStates> states) {
+    public <E> void updateDetailFragment(ArrayList<E> states, boolean showCity) {
         if (mListener != null) {
-            mListener.onFragmentInteraction(states);
+            mListener.onFragmentInteraction(states, showCity);
         }
     }
 
@@ -161,6 +179,7 @@ public class MoreOptionListFragment extends Fragment implements View.OnClickList
     @Override
     public void onClick(View v) {
         selectedStates.clear();
+        selectedCities.clear();
         switch (v.getId()){
             case R.id.moreOptionList1:
                 Log.d("listItemClicked", "A-D");
@@ -193,14 +212,26 @@ public class MoreOptionListFragment extends Fragment implements View.OnClickList
     }
 
     public void updateMoreOptionDetailFragment(char...letters){
-        for (USStates state:usStates) {
-            char letter = state.name.charAt(0);
 
-            for(char key: letters){
-                if(letter ==key) selectedStates.add(state);
+        if(!showCity){
+            for (USStates state:usStates) {
+                char letter = state.name.charAt(0);
+
+                for(char key: letters){
+                    if(letter ==key) selectedStates.add(state);
+                }
             }
+            updateDetailFragment(selectedStates, showCity);
+        }else{
+            for (USCities city: usCities){
+                char letter = city.name.charAt(0);
+
+                for(char key: letters){
+                    if(letter ==key) selectedCities.add(city);
+                }
+            }
+            updateDetailFragment(selectedCities, showCity);
         }
-        updateDetailFragment(selectedStates);
     }
 
 
@@ -218,6 +249,6 @@ public class MoreOptionListFragment extends Fragment implements View.OnClickList
      */
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
-        void onFragmentInteraction(ArrayList<USStates> states);
+        <E> void onFragmentInteraction(ArrayList<E> states, boolean showCity);
     }
 }

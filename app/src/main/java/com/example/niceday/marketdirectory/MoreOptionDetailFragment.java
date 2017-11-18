@@ -23,7 +23,7 @@ public class MoreOptionDetailFragment extends Fragment implements View.OnClickLi
 
     private LinearLayout rootLinear;
     private OnFragmentInteractionListener mListener;
-
+    private boolean showCity;
     public MoreOptionDetailFragment() {
         // Required empty public constructor
     }
@@ -48,22 +48,41 @@ public class MoreOptionDetailFragment extends Fragment implements View.OnClickLi
         return _view;
     }
 
-    public void setupDetailView(ArrayList<USStates> states){
+    public <E> void setupDetailView(ArrayList<E> inputs, boolean showCity){
         TextView insertTextView;
         rootLinear.removeAllViews();
-        for(USStates state: states){
+        this.showCity = showCity;
 
+
+        if(inputs.size()>0) {
+            for (E input : inputs) {
+
+                insertTextView = new TextView(getContext());
+                insertTextView.setTextSize(30);
+                insertTextView.setGravity(Gravity.CENTER);
+                insertTextView.setId(View.generateViewId());
+                if (!showCity) {
+                    insertTextView.setText(((USStates) input).name);
+                } else {
+                    insertTextView.setText(((USCities) input).name + " - " + ((USCities) input).postcode);
+
+                }
+
+
+                insertTextView.setTag(input);
+                insertTextView.setOnClickListener(this);
+
+                rootLinear.addView(insertTextView);
+
+            }
+        }else{
             insertTextView = new TextView(getContext());
-            insertTextView.setTextSize(40);
-            insertTextView.setText(state.name);
-            insertTextView.setTag(state);
+            insertTextView.setTextSize(30);
             insertTextView.setGravity(Gravity.CENTER);
             insertTextView.setId(View.generateViewId());
-            insertTextView.setOnClickListener(this);
+            insertTextView.setText("There's no content under these letters");
             rootLinear.addView(insertTextView);
-
         }
-
     }
 
 
@@ -71,9 +90,9 @@ public class MoreOptionDetailFragment extends Fragment implements View.OnClickLi
 
 
     // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
+    public void onButtonPressed(String zipcode) {
         if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
+            mListener.onFragmentInteraction(zipcode);
         }
     }
 
@@ -96,13 +115,17 @@ public class MoreOptionDetailFragment extends Fragment implements View.OnClickLi
 
     @Override
     public void onClick(View v) {
-        Log.d("detailfragment", ((USStates)v.getTag()).name);
+        if(!showCity) {
+            Log.d("detailfragment", ((USStates) v.getTag()).name);
 
-        Intent downloadService = new Intent(getActivity(), DownloadService.class);
-        downloadService.putExtra("SERVICETYPE", "byStateCode");
-        downloadService.putExtra("StateCode", ((USStates)v.getTag()).abbr);
-        getActivity().startService(downloadService);
-
+            Intent downloadService = new Intent(getActivity(), DownloadService.class);
+            downloadService.putExtra("SERVICETYPE", "byStateCode");
+            downloadService.putExtra("StateCode", ((USStates) v.getTag()).abbr);
+            getActivity().startService(downloadService);
+        }else{
+            Log.d("detailfragment", ((USCities) v.getTag()).postcode);
+            onButtonPressed(((USCities) v.getTag()).postcode);
+        }
 
     }
 
@@ -118,6 +141,6 @@ public class MoreOptionDetailFragment extends Fragment implements View.OnClickLi
      */
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
-        void onFragmentInteraction(Uri uri);
+        void onFragmentInteraction(String zipcode);
     }
 }

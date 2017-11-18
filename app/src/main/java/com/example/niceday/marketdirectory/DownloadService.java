@@ -57,6 +57,7 @@ public class DownloadService extends IntentService{
             case "byStateCode": searchLink = "http://gomashup.com/json.php?fds=geo/usa/zipcode/state/"+intent.getStringExtra("StateCode");
                                 finishFlag = MoreOptionsActivity.TheResponse.STATUS_DONE_3;
                                 results = getRemoteData(searchLink);
+                                results = results.substring(1,results.length()-1);
                 break;
 
         }

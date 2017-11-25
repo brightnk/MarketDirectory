@@ -413,7 +413,7 @@ public class StartActivity extends AppCompatActivity implements MarketFragment.O
 
                         ArrayList<String> states = new ArrayList<>();
                         for(USCities city: cityLists){
-                            states.add(city.state);
+                            states.add(city.state+" "+city.postcode);
                         }
 
                         String[] stateArr = states.toArray(new String[states.size()]);

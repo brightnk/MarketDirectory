@@ -215,8 +215,6 @@ public class StartActivity extends AppCompatActivity implements MarketFragment.O
         Log.d("marketClicked", item.marketName);
         startDetailActivity(item);
 
-
-
     }
 
     //search button listener

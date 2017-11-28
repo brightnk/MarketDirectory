@@ -8,10 +8,16 @@ import android.app.IntentService;
 import android.content.Intent;
 import android.util.Log;
 
+import com.google.gson.Gson;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 
 import static android.content.ContentValues.TAG;
 
@@ -58,6 +64,25 @@ public class DownloadService extends IntentService{
                                 finishFlag = MoreOptionsActivity.TheResponse.STATUS_DONE_3;
                                 results = getRemoteData(searchLink);
                                 results = results.substring(1,results.length()-1);
+                                ArrayList<USCities> citysList = new ArrayList<>();
+                                try {
+                                    JSONObject cities = new JSONObject(results);
+                                    JSONArray cityArr = cities.getJSONArray("result");
+                                    JSONObject element;
+                                    USCities city;
+                                    for (int i = 0; i < cityArr.length(); i++) {
+                                        element = cityArr.getJSONObject(i);
+                                        city = new USCities();
+                                        city.name = element.getString("City");
+                                        city.postcode = element.getString("Zipcode");
+                                        citysList.add(city);
+                                    }
+                                    results = new Gson().toJson(citysList);
+                                }catch(Exception e){
+                                    e.getStackTrace();
+                                    results = null;
+                                }
+
                 break;
 
             case "byCityName": searchLink = "http://gomashup.com/json.php?fds=geo/usa/zipcode/city/"+intent.getStringExtra("CityName");

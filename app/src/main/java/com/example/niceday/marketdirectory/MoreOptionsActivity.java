@@ -11,9 +11,13 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 
 
@@ -86,24 +90,10 @@ public class MoreOptionsActivity extends AppCompatActivity implements MoreOption
                 if(cityText!=null){
                     Log.d("newCity Service", cityText);
                     pageTitle.setText("Select the City:");
-                    ArrayList<USCities> citysList = new ArrayList<>();
-                    try {
-                        JSONObject cities = new JSONObject(cityText);
-                        JSONArray cityArr = cities.getJSONArray("result");
-                        JSONObject element;
-                        USCities city;
-                        for (int i = 0; i < cityArr.length(); i++) {
-                            element = cityArr.getJSONObject(i);
-                            city = new USCities();
-                            city.name = element.getString("City");
-                            city.postcode = element.getString("Zipcode");
-                            citysList.add(city);
-                        }
-                        moreOptionListFragment.setCities(citysList);
-                        moreOptionListFragment.updateMoreOptionDetailFragment('A','B','C','D');
-                    }catch (Exception e){
-                        Log.d("CITYUPDATE", "Error"+e.getMessage());
-                    }
+                    Type type = new TypeToken<ArrayList<USCities>>(){}.getType();
+                    ArrayList<USCities> citysList = new Gson().fromJson(cityText, type);
+                    moreOptionListFragment.setCities(citysList);
+                    moreOptionListFragment.updateMoreOptionDetailFragment('A','B','C','D');
 
 
 

@@ -24,3 +24,7 @@ These instructions will get you a copy of the project up and running on your loc
 3. Allow the application to read the device location
 
 ## ScreenShot of the application <br />
+![Tablet device view](/TabletMain.png?raw=true "Tablet View of app")
+![Mobile device list view](/mobileList.png?raw=true "Mobile List view of app")
+![Mobile device Map view](/mobileMap.png?raw=true "Mobile Map view of app")
+![Mobile device Search view](/mobileSearch.png?raw=true "Mobile Search view of app")
